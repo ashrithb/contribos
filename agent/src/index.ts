@@ -14,25 +14,28 @@ const humanContributors = [
   { address: "0xCa101000000000000000000000000000000Ca101", name: "Carol" },
 ];
 
+// Real PR titles from github.com/0gfoundation/0g-doc/pulls
 const prTemplates = [
-  { title: "Implement webhook delivery queue with dead letter handling", files: 5, add: 189, del: 23 },
-  { title: "Add rate limiting per API key with sliding window", files: 3, add: 94, del: 12 },
-  { title: "Implement graceful shutdown with in-flight request draining", files: 4, add: 112, del: 28 },
-  { title: "Add WebSocket reconnection with exponential backoff", files: 2, add: 67, del: 8 },
-  { title: "Refactor caching layer to support TTL per resource type", files: 6, add: 234, del: 89 },
-  { title: "Add input validation middleware with JSON schema", files: 4, add: 145, del: 34 },
-  { title: "Implement CORS policy with per-origin configuration", files: 2, add: 78, del: 15 },
-  { title: "Add health check endpoint with dependency status", files: 3, add: 56, del: 4 },
-  { title: "Migrate database queries to use prepared statements", files: 7, add: 198, del: 167 },
-  { title: "Add OpenAPI spec generation from route handlers", files: 5, add: 312, del: 0 },
+  { title: "docs: add Content-Signal headers and fine-tuning example link", files: 2, add: 45, del: 3 },
+  { title: "docs: add hosted Web UI link for compute inference", files: 1, add: 18, del: 2 },
+  { title: "feat: Add LLM-friendly documentation endpoints", files: 4, add: 156, del: 0 },
+  { title: "docs: update compute network model listings", files: 2, add: 67, del: 34 },
+  { title: "docs: clarify chatID retrieval principle and correct terminology", files: 3, add: 42, del: 28 },
+  { title: "refactor: change flux model to z-image", files: 2, add: 15, del: 12 },
+  { title: "chore: update deepseek from 3.1 to 3.2", files: 1, add: 8, del: 8 },
+  { title: "docs: update compute network documentation", files: 5, add: 134, del: 67 },
+  { title: "refactor: refactor compute network doc", files: 6, add: 198, del: 145 },
+  { title: "fix: correct chatID retrieval logic in inference documentation", files: 2, add: 22, del: 18 },
+  { title: "fix: mainnet node path", files: 1, add: 4, del: 4 },
+  { title: "docs: remove emojis from section headings", files: 8, add: 24, del: 24 },
 ];
 
 const reviewDetails = [
-  { summary: "Approved — clean implementation, good test coverage", detail: "Code follows established patterns. Error handling is thorough. Tests cover edge cases." },
-  { summary: "Approved — no issues found, 2 style suggestions", detail: "Implementation is solid. Consider extracting validation logic into shared utility." },
-  { summary: "Approved — secure implementation, well-documented", detail: "Security review passed. Input sanitization is correct. API boundaries well-defined." },
-  { summary: "Approved — backwards compatible, good migration path", detail: "Schema changes backwards compatible. Migration script handles edge cases." },
-  { summary: "Changes requested — 1 issue, 2 suggestions", detail: "Found potential race condition in connection pool cleanup. Suggest adding mutex." },
+  { summary: "Approved — API examples verified against live endpoint", detail: "Tested all code examples against 0G compute network. Response formats match documented schema." },
+  { summary: "Approved — model references up to date", detail: "Model listings verified against current 0G compute network availability. Pricing table matches on-chain rates." },
+  { summary: "Approved — documentation links and paths verified", detail: "All internal cross-references resolve correctly. External links to 0G explorer and faucet tested." },
+  { summary: "Approved — configuration values match testnet", detail: "Chain ID, RPC URL, and contract addresses verified against live 0G testnet. Node setup instructions tested." },
+  { summary: "Changes requested — outdated SDK version referenced", detail: "SDK import path uses deprecated v1 format. Update to v2 namespace. Fine-tuning example references removed model." },
 ];
 
 const codeSnippets = [

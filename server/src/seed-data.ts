@@ -108,7 +108,7 @@ const now = Date.now();
 export const seedEvents: FeedEvent[] = (() => {
   const events: FeedEvent[] = [];
 
-  // Chain 1: Alice pushes parser endpoint → Agent reviews → Payment
+  // Chain 1: Alice pushes 0G SDK update → Agent reviews → Payment
   const c1 = nextChainId();
   events.push({
     id: nextId(),
@@ -116,12 +116,12 @@ export const seedEvents: FeedEvent[] = (() => {
     timestamp: now - 600000,
     sender: contributors[0].address,
     senderName: "Alice",
-    content: "Pushed new parser endpoint with token validation",
-    prNumber: 42,
-    prTitle: "Add retry logic with exponential backoff",
+    content: "Fixed deprecated SDK examples and updated compute contracts",
+    prNumber: 251,
+    prTitle: "fix: update deprecated SDK example, service tables, and compute contracts",
     filesChanged: 4,
     additions: 127,
-    deletions: 18,
+    deletions: 43,
     chainId: c1,
   });
   events.push({
@@ -131,11 +131,11 @@ export const seedEvents: FeedEvent[] = (() => {
     sender: contributors[3].address,
     senderName: "Agent-Reviewer",
     content:
-      "Clean implementation with good error handling. Backoff multiplier looks correct. Test coverage is thorough.",
+      "SDK examples verified against latest API. Service table references updated correctly. Compute contract addresses match on-chain deployment.",
     reviewResult: "approved",
-    reviewSummary: "Approved — no issues found, 2 style suggestions",
-    linkedPrNumber: 42,
-    linkedPrTitle: "Add retry logic with exponential backoff",
+    reviewSummary: "Approved — SDK examples verified, contracts match on-chain",
+    linkedPrNumber: 251,
+    linkedPrTitle: "fix: update deprecated SDK example, service tables, and compute contracts",
     chainId: c1,
   });
   events.push({
@@ -161,7 +161,7 @@ export const seedEvents: FeedEvent[] = (() => {
     chainId: c1,
   });
 
-  // Chain 2: Carol pushes auth middleware → Agent reviews → Payment
+  // Chain 2: Carol pushes chatID fix → Agent reviews → Payment
   const c2 = nextChainId();
   events.push({
     id: nextId(),
@@ -169,12 +169,12 @@ export const seedEvents: FeedEvent[] = (() => {
     timestamp: now - 400000,
     sender: contributors[2].address,
     senderName: "Carol",
-    content: "Merged auth middleware PR with JWT support",
-    prNumber: 43,
-    prTitle: "Refactor auth middleware to support API key + JWT",
-    filesChanged: 6,
-    additions: 203,
-    deletions: 45,
+    content: "Corrected chatID retrieval logic in streaming response docs",
+    prNumber: 234,
+    prTitle: "fix: correct chatID retrieval logic in streaming response",
+    filesChanged: 2,
+    additions: 18,
+    deletions: 12,
     chainId: c2,
   });
   events.push({
@@ -184,11 +184,11 @@ export const seedEvents: FeedEvent[] = (() => {
     sender: contributors[3].address,
     senderName: "Agent-Reviewer",
     content:
-      "Security review passed. No vulnerabilities detected. JWT validation is correct. Suggest adding token expiry check.",
+      "Verified chatID parsing against live streaming endpoint. Response format matches updated API spec. Edge case for empty responses handled.",
     reviewResult: "approved",
-    reviewSummary: "Approved — secure implementation, 1 suggestion",
-    linkedPrNumber: 43,
-    linkedPrTitle: "Refactor auth middleware to support API key + JWT",
+    reviewSummary: "Approved — chatID logic verified against live endpoint",
+    linkedPrNumber: 234,
+    linkedPrTitle: "fix: correct chatID retrieval logic in streaming response",
     chainId: c2,
   });
   events.push({
@@ -214,7 +214,7 @@ export const seedEvents: FeedEvent[] = (() => {
     chainId: c2,
   });
 
-  // Chain 3: Bob pushes logging → Agent analyzes → Payment
+  // Chain 3: Bob pushes fine-tuning guide update → Agent reviews → Payment
   const c3 = nextChainId();
   events.push({
     id: nextId(),
@@ -222,12 +222,12 @@ export const seedEvents: FeedEvent[] = (() => {
     timestamp: now - 250000,
     sender: contributors[1].address,
     senderName: "Bob",
-    content: "Added structured logging with correlation IDs",
-    prNumber: 44,
-    prTitle: "Add structured logging with correlation IDs",
-    filesChanged: 8,
-    additions: 156,
-    deletions: 32,
+    content: "Updated fine-tuning guide to reflect actual tested workflow",
+    prNumber: 243,
+    prTitle: "docs: update fine-tuning guide to reflect actual tested workflow",
+    filesChanged: 3,
+    additions: 89,
+    deletions: 41,
     chainId: c3,
   });
   events.push({
@@ -237,11 +237,11 @@ export const seedEvents: FeedEvent[] = (() => {
     sender: contributors[3].address,
     senderName: "Agent-Reviewer",
     content:
-      "Logging format is consistent. Correlation IDs propagate correctly across async boundaries. Good use of structured fields.",
+      "Fine-tuning workflow steps verified end-to-end. Dataset format matches API requirements. Training parameters produce expected results.",
     reviewResult: "approved",
-    reviewSummary: "Approved — clean implementation",
-    linkedPrNumber: 44,
-    linkedPrTitle: "Add structured logging with correlation IDs",
+    reviewSummary: "Approved — workflow tested end-to-end",
+    linkedPrNumber: 243,
+    linkedPrTitle: "docs: update fine-tuning guide to reflect actual tested workflow",
     chainId: c3,
   });
   events.push({
@@ -275,7 +275,7 @@ export const seedEvents: FeedEvent[] = (() => {
     sender: contributors[0].address,
     senderName: "Alice",
     content:
-      "The /analyze endpoint is getting way more agent traffic today — 3 new agents discovered us through the registry",
+      "Seeing more PRs to the 0G docs repo this week — agent reviewer is catching issues faster than manual review",
   });
 
   // System event
@@ -293,99 +293,112 @@ export const seedEvents: FeedEvent[] = (() => {
 })();
 
 // Templates for generating live activity chains during demo
+// Real PR titles from github.com/0gfoundation/0g-doc/pulls
 export const prTemplates = [
   {
-    title: "Implement webhook delivery queue with dead letter handling",
-    files: 5,
-    add: 189,
-    del: 23,
+    title: "docs: add Content-Signal headers and fine-tuning example link",
+    files: 2,
+    add: 45,
+    del: 3,
   },
   {
-    title: "Add rate limiting per API key with sliding window",
-    files: 3,
-    add: 94,
-    del: 12,
+    title: "docs: add hosted Web UI link for compute inference",
+    files: 1,
+    add: 18,
+    del: 2,
   },
   {
-    title: "Implement graceful shutdown with in-flight request draining",
+    title: "feat: Add LLM-friendly documentation endpoints",
     files: 4,
-    add: 112,
-    del: 28,
+    add: 156,
+    del: 0,
   },
   {
-    title: "Add WebSocket reconnection with exponential backoff",
+    title: "docs: update compute network model listings",
     files: 2,
     add: 67,
-    del: 8,
-  },
-  {
-    title: "Refactor caching layer to support TTL per resource type",
-    files: 6,
-    add: 234,
-    del: 89,
-  },
-  {
-    title: "Add input validation middleware with JSON schema",
-    files: 4,
-    add: 145,
     del: 34,
   },
   {
-    title: "Implement CORS policy with per-origin configuration",
-    files: 2,
-    add: 78,
-    del: 15,
+    title: "docs: clarify chatID retrieval principle and correct terminology",
+    files: 3,
+    add: 42,
+    del: 28,
   },
   {
-    title: "Add health check endpoint with dependency status",
-    files: 3,
-    add: 56,
+    title: "refactor: change flux model to z-image",
+    files: 2,
+    add: 15,
+    del: 12,
+  },
+  {
+    title: "chore: update deepseek from 3.1 to 3.2",
+    files: 1,
+    add: 8,
+    del: 8,
+  },
+  {
+    title: "docs: update compute network documentation",
+    files: 5,
+    add: 134,
+    del: 67,
+  },
+  {
+    title: "refactor: refactor compute network doc",
+    files: 6,
+    add: 198,
+    del: 145,
+  },
+  {
+    title: "fix: correct chatID retrieval logic in inference documentation",
+    files: 2,
+    add: 22,
+    del: 18,
+  },
+  {
+    title: "fix: mainnet node path",
+    files: 1,
+    add: 4,
     del: 4,
   },
   {
-    title: "Migrate database queries to use prepared statements",
-    files: 7,
-    add: 198,
-    del: 167,
-  },
-  {
-    title: "Add OpenAPI spec generation from route handlers",
-    files: 5,
-    add: 312,
-    del: 0,
+    title: "docs: remove emojis from section headings",
+    files: 8,
+    add: 24,
+    del: 24,
   },
 ];
 
 export const reviewTemplates = [
   {
     result: "approved" as const,
-    summary: "Approved — clean implementation, good test coverage",
+    summary: "Approved — API examples verified against live endpoint",
     detail:
-      "Code follows established patterns. Error handling is thorough. Tests cover edge cases. No security concerns.",
+      "Tested all code examples against 0G compute network. Response formats match documented schema. Latency within expected range.",
   },
   {
     result: "approved" as const,
-    summary: "Approved — no issues found, 2 style suggestions",
+    summary: "Approved — model references up to date",
     detail:
-      "Implementation is solid. Consider extracting the validation logic into a shared utility. Variable naming is clear.",
+      "Model listings verified against current 0G compute network availability. Pricing table matches on-chain rates. Deprecation notices added correctly.",
   },
   {
     result: "approved" as const,
-    summary: "Approved — secure implementation, well-documented",
+    summary: "Approved — documentation links and paths verified",
     detail:
-      "Security review passed. Input sanitization is correct. API boundaries are well-defined. Documentation is helpful.",
+      "All internal cross-references resolve correctly. External links to 0G explorer and faucet tested. No broken anchors.",
   },
   {
     result: "approved" as const,
-    summary: "Approved — backwards compatible, good migration path",
+    summary: "Approved — configuration values match testnet",
     detail:
-      "Schema changes are backwards compatible. Migration script handles edge cases. Rollback procedure is documented.",
+      "Chain ID, RPC URL, and contract addresses verified against live 0G testnet. Node setup instructions tested on clean environment.",
   },
   {
     result: "changes_requested" as const,
-    summary: "Changes requested — 1 issue, 2 suggestions",
+    summary: "Changes requested — outdated SDK version referenced",
     detail:
-      "Found potential race condition in the connection pool cleanup. Suggest adding mutex. Also consider adding timeout parameter.",
+      "SDK import path uses deprecated v1 format. Update to v2 namespace. Also, fine-tuning example references removed model — suggest using deepseek-3.2.",
   },
 ];
 
