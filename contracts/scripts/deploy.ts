@@ -1,12 +1,12 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  // Hardcoded contributor addresses for demo
+  // Real wallet addresses + demo addresses
   const contributors = [
-    "0xA11c3000000000000000000000000000000A11c3", // Alice
-    "0xB0bb0000000000000000000000000000000B0bb0", // Bob
-    "0xCa101000000000000000000000000000000Ca101", // Carol
-    "0xA93n7000000000000000000000000000000A93n7", // Agent-Reviewer
+    "0x5aF191F4a93dD5D830F6232b7c4a12A5f8ebd10E", // Main wallet (Alice)
+    "0xbf50e468ffdc701A07af517215A961362147027C", // Bob (demo)
+    "0x57CF531C2479b56cA4285e5FA5eF75369A709775", // Carol (demo)
+    "0x45c3Bc818bd50baB7212a764B603aAD51893614B", // Agent wallet
   ];
   const weights = [40, 30, 20, 10]; // percentage weights
 

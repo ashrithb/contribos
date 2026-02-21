@@ -3,15 +3,30 @@ dotenv.config({ path: "../../.env" });
 dotenv.config({ path: "../.env" });
 dotenv.config();
 
+import { ethers } from "ethers";
+
 const API_URL = process.env.API_URL || "http://localhost:4000";
-const AGENT_ADDRESS = "0xA93n7000000000000000000000000000000A93n7";
+const AGENT_PRIVATE_KEY = process.env.AGENT_PRIVATE_KEY || "";
+const SPLITTER_ADDRESS = process.env.SPLITTER_ADDRESS || "";
+const RPC_URL = process.env.RPC_URL || "https://rpc-testnet.gokite.ai/";
+
+// Set up ethers wallet for real on-chain transactions
+const provider = new ethers.JsonRpcProvider(RPC_URL);
+const wallet = AGENT_PRIVATE_KEY
+  ? new ethers.Wallet(AGENT_PRIVATE_KEY, provider)
+  : null;
+
+const AGENT_ADDRESS = wallet?.address || "0x45c3Bc818bd50baB7212a764B603aAD51893614B";
 const AGENT_NAME = "Agent-Reviewer";
+
+// Tiny payment amount: 0.000001 KITE (conserve testnet funds)
+const PAYMENT_AMOUNT_WEI = ethers.parseUnits("0.000001", "ether");
 
 // Contributor addresses for simulating code pushes
 const humanContributors = [
-  { address: "0xA11c3000000000000000000000000000000A11c3", name: "Alice" },
-  { address: "0xB0bb0000000000000000000000000000000B0bb0", name: "Bob" },
-  { address: "0xCa101000000000000000000000000000000Ca101", name: "Carol" },
+  { address: "0x5aF191F4a93dD5D830F6232b7c4a12A5f8ebd10E", name: "Alice" },
+  { address: "0xbf50e468ffdc701A07af517215A961362147027C", name: "Bob" },
+  { address: "0x57CF531C2479b56cA4285e5FA5eF75369A709775", name: "Carol" },
 ];
 
 // Real PR titles from github.com/0gfoundation/0g-doc/pulls
@@ -60,7 +75,35 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function mockTxHash(): string {
+  return `0x${Array.from({ length: 64 }, () =>
+    Math.floor(Math.random() * 16).toString(16)
+  ).join("")}`;
+}
+
 let prCounter = 44;
+
+// ── Real on-chain payment ───────────────────────────────────────────────────
+
+async function sendRealPayment(toAddress: string): Promise<string> {
+  if (!wallet) {
+    console.log("  → No wallet configured, using mock tx hash");
+    return mockTxHash();
+  }
+
+  try {
+    const tx = await wallet.sendTransaction({
+      to: toAddress,
+      value: PAYMENT_AMOUNT_WEI,
+    });
+    console.log(`  → Real tx sent: ${tx.hash}`);
+    // Don't wait for confirmation to keep things fast
+    return tx.hash;
+  } catch (e: any) {
+    console.error(`  → Real tx failed (${e.message}), using mock tx hash`);
+    return mockTxHash();
+  }
+}
 
 // ── API helpers ──────────────────────────────────────────────────────────────
 
@@ -88,6 +131,10 @@ async function callPaidEndpoint(
   if (initialRes.status === 402) {
     console.log(`  → 402 received for ${endpoint} — paying ${price}...`);
 
+    // Send real on-chain payment
+    const payTo = SPLITTER_ADDRESS || "0x5aF191F4a93dD5D830F6232b7c4a12A5f8ebd10E";
+    const txHash = await sendRealPayment(payTo);
+
     const paidRes = await fetch(`${API_URL}${endpoint}`, {
       method: "POST",
       headers: {
@@ -97,6 +144,7 @@ async function callPaidEndpoint(
           network: "kite-testnet",
           amount: price,
           payer: AGENT_ADDRESS,
+          txHash,
         }),
         "X-Sender": AGENT_ADDRESS,
         "X-Sender-Name": AGENT_NAME,
@@ -162,7 +210,7 @@ async function runActivityChain() {
   // Wait 1-2 seconds before payment
   await delay(1000 + Math.random() * 1000);
 
-  // Step 3: Pay for the review via x402
+  // Step 3: Pay for the review via x402 (real on-chain tx!)
   console.log(`  [3/3] Paying for review via x402...`);
   const result = await callPaidEndpoint(
     "/api/review",
@@ -209,7 +257,20 @@ async function main() {
   console.log("║  ContribOS Agent — Autonomous x402 Consumer  ║");
   console.log("╚══════════════════════════════════════════════╝");
   console.log(`API: ${API_URL}`);
-  console.log(`Agent: ${AGENT_NAME} (${AGENT_ADDRESS})\n`);
+  console.log(`Agent: ${AGENT_NAME} (${AGENT_ADDRESS})`);
+  console.log(`Wallet: ${wallet ? "Connected" : "No private key — mock mode"}`);
+  console.log(`Splitter: ${SPLITTER_ADDRESS || "Not configured"}`);
+  console.log(`Payment: ${ethers.formatEther(PAYMENT_AMOUNT_WEI)} KITE per tx\n`);
+
+  // Check balance
+  if (wallet) {
+    try {
+      const balance = await provider.getBalance(wallet.address);
+      console.log(`[Agent] Wallet balance: ${ethers.formatEther(balance)} KITE`);
+    } catch {
+      console.log("[Agent] Could not fetch balance");
+    }
+  }
 
   try {
     const health = await fetch(`${API_URL}/api/health`);
@@ -247,7 +308,8 @@ async function main() {
       console.error(`[Agent] Error:`, e.message);
     }
 
-    const waitTime = 12000 + Math.random() * 13000;
+    // Longer wait to conserve testnet funds (25-40s)
+    const waitTime = 25000 + Math.random() * 15000;
     console.log(`[Agent] Next cycle in ${(waitTime / 1000).toFixed(1)}s...`);
     await delay(waitTime);
   }

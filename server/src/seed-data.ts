@@ -45,7 +45,7 @@ export interface FeedEvent {
 
 export const contributors: Contributor[] = [
   {
-    address: "0xA11c3000000000000000000000000000000A11c3",
+    address: "0x5aF191F4a93dD5D830F6232b7c4a12A5f8ebd10E",
     name: "Alice",
     role: "Core maintainer",
     weight: 40,
@@ -55,7 +55,7 @@ export const contributors: Contributor[] = [
     reviews: 0,
   },
   {
-    address: "0xB0bb0000000000000000000000000000000B0bb0",
+    address: "0xbf50e468ffdc701A07af517215A961362147027C",
     name: "Bob",
     role: "Backend lead",
     weight: 30,
@@ -65,7 +65,7 @@ export const contributors: Contributor[] = [
     reviews: 0,
   },
   {
-    address: "0xCa101000000000000000000000000000000Ca101",
+    address: "0x57CF531C2479b56cA4285e5FA5eF75369A709775",
     name: "Carol",
     role: "Security reviewer",
     weight: 20,
@@ -75,7 +75,7 @@ export const contributors: Contributor[] = [
     reviews: 0,
   },
   {
-    address: "0xA93n7000000000000000000000000000000A93n7",
+    address: "0x45c3Bc818bd50baB7212a764B603aAD51893614B",
     name: "Agent-Reviewer",
     role: "AI code reviewer",
     weight: 10,
@@ -138,30 +138,7 @@ export const seedEvents: FeedEvent[] = (() => {
     linkedPrTitle: "fix: update deprecated SDK example, service tables, and compute contracts",
     chainId: c1,
   });
-  events.push({
-    id: nextId(),
-    type: "payment",
-    timestamp: now - 560000,
-    sender: contributors[3].address,
-    senderName: "Agent-Reviewer",
-    content: "x402 payment for /api/review",
-    amount: "$0.10",
-    endpoint: "/api/review",
-    txHash: mockTxHash(),
-    splits: [
-      { address: contributors[0].address, name: "Alice", amount: "$0.040" },
-      { address: contributors[1].address, name: "Bob", amount: "$0.030" },
-      { address: contributors[2].address, name: "Carol", amount: "$0.020" },
-      {
-        address: contributors[3].address,
-        name: "Agent-Reviewer",
-        amount: "$0.010",
-      },
-    ],
-    chainId: c1,
-  });
-
-  // Chain 2: Carol pushes chatID fix → Agent reviews → Payment
+  // Chain 2: Carol pushes chatID fix → Agent reviews
   const c2 = nextChainId();
   events.push({
     id: nextId(),
@@ -191,30 +168,7 @@ export const seedEvents: FeedEvent[] = (() => {
     linkedPrTitle: "fix: correct chatID retrieval logic in streaming response",
     chainId: c2,
   });
-  events.push({
-    id: nextId(),
-    type: "payment",
-    timestamp: now - 375000,
-    sender: contributors[3].address,
-    senderName: "Agent-Reviewer",
-    content: "x402 payment for /api/review",
-    amount: "$0.10",
-    endpoint: "/api/review",
-    txHash: mockTxHash(),
-    splits: [
-      { address: contributors[0].address, name: "Alice", amount: "$0.040" },
-      { address: contributors[1].address, name: "Bob", amount: "$0.030" },
-      { address: contributors[2].address, name: "Carol", amount: "$0.020" },
-      {
-        address: contributors[3].address,
-        name: "Agent-Reviewer",
-        amount: "$0.010",
-      },
-    ],
-    chainId: c2,
-  });
-
-  // Chain 3: Bob pushes fine-tuning guide update → Agent reviews → Payment
+  // Chain 3: Bob pushes fine-tuning guide update → Agent reviews
   const c3 = nextChainId();
   events.push({
     id: nextId(),
@@ -244,29 +198,6 @@ export const seedEvents: FeedEvent[] = (() => {
     linkedPrTitle: "docs: update fine-tuning guide to reflect actual tested workflow",
     chainId: c3,
   });
-  events.push({
-    id: nextId(),
-    type: "payment",
-    timestamp: now - 225000,
-    sender: contributors[3].address,
-    senderName: "Agent-Reviewer",
-    content: "x402 payment for /api/analyze",
-    amount: "$0.05",
-    endpoint: "/api/analyze",
-    txHash: mockTxHash(),
-    splits: [
-      { address: contributors[0].address, name: "Alice", amount: "$0.020" },
-      { address: contributors[1].address, name: "Bob", amount: "$0.015" },
-      { address: contributors[2].address, name: "Carol", amount: "$0.010" },
-      {
-        address: contributors[3].address,
-        name: "Agent-Reviewer",
-        amount: "$0.005",
-      },
-    ],
-    chainId: c3,
-  });
-
   // Standalone message
   events.push({
     id: nextId(),

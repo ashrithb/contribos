@@ -144,7 +144,16 @@ function x402Middleware(config: PriceConfig) {
       };
     });
 
-    const txHash = generateMockTxHash();
+    // Extract real tx hash from X-Payment header if available
+    let txHash = generateMockTxHash();
+    try {
+      const parsed = JSON.parse(paymentHeader as string);
+      if (parsed.txHash && parsed.txHash.startsWith("0x")) {
+        txHash = parsed.txHash;
+      }
+    } catch {
+      // Not JSON or no txHash field — use mock
+    }
     const chainId = (req.headers["x-chain-id"] as string) || undefined;
 
     const paymentEvent: FeedEvent = {
