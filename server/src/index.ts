@@ -309,7 +309,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 // ── Start server ─────────────────────────────────────────────────────────────
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`ContribOS server running on http://localhost:${PORT}`);
   console.log(`WebSocket available at ws://localhost:${PORT}/ws`);
   console.log(`Splitter contract: ${SPLITTER_ADDRESS}`);

@@ -48,8 +48,11 @@ export interface StatsUpdate {
   contributors: Contributor[];
 }
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:4000/ws";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+// Derive WebSocket URL from API URL (http→ws, https→wss)
+const WS_URL =
+  process.env.NEXT_PUBLIC_WS_URL ||
+  API_URL.replace(/^http/, "ws") + "/ws";
 
 export function useContribOS() {
   const [events, setEvents] = useState<FeedEvent[]>([]);

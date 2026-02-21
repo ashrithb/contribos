@@ -308,8 +308,8 @@ async function main() {
       console.error(`[Agent] Error:`, e.message);
     }
 
-    // Longer wait to conserve testnet funds (25-40s)
-    const waitTime = 25000 + Math.random() * 15000;
+    // Longer wait to conserve testnet funds (60-90s)
+    const waitTime = 60000 + Math.random() * 30000;
     console.log(`[Agent] Next cycle in ${(waitTime / 1000).toFixed(1)}s...`);
     await delay(waitTime);
   }
