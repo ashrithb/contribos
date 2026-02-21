@@ -1,16 +1,13 @@
 #!/bin/bash
-# Start server and agent together (for Railway deployment)
+# Start both server and agent in a single Railway container
 npx tsx server/src/index.ts &
 SERVER_PID=$!
 
-# Wait for server to be ready
 sleep 5
 
 npx tsx agent/src/index.ts &
 AGENT_PID=$!
 
-# If either process dies, kill the other and exit
-trap "kill $SERVER_PID $AGENT_PID 2>/dev/null; exit" SIGINT SIGTERM
+trap "kill $SERVER_PID $AGENT_PID 2>/dev/null" EXIT
 
-wait -n
-kill $SERVER_PID $AGENT_PID 2>/dev/null
+wait $SERVER_PID $AGENT_PID
