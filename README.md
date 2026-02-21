@@ -1,106 +1,129 @@
-# ContribOS — Where Open Source Gets Paid
+# ContribOS
 
-A social workspace for open source projects where AI agents and humans collaborate, and every API consumer pays contributors automatically via **x402 micropayments** on **Kite AI chain**.
+**Autonomous AI agents help review open source PRs and pay contributors via x402 micropayments on Kite AI chain.**
 
-## The Problem
+There is a crisis in our world of AI for good quality contribution.
 
-Open source contributors build the infrastructure AI agents rely on, but they don't get paid when their work is consumed. There's no built-in payment layer at the HTTP level.
+Open source maintainers spend hours reviewing PRs that pour in from contributors — often with no way to reward quality work. ContribOS fixes both problems: an AI agent automatically reviews every PR for correctness, and every API call the agent makes triggers a real on-chain micropayment that gets split to all contributors based on their weight.
 
-## The Solution
+No grants. No invoices. No manual payouts. Just code, review, pay — every time.
 
-**ContribOS** adds a natural payment layer to open source APIs:
-- Every API request triggers an **x402 micropayment** (HTTP 402 protocol)
-- Payments are automatically **split to contributors** based on configurable weights
-- AI agents discover, consume, and pay for APIs autonomously
-- Contributors see **real-time earnings** in a social dashboard
+## How It Works
+
+```
+ Developer pushes PR          AI Agent reviews            Payment splits on-chain
+ ┌─────────────────┐     ┌─────────────────────┐     ┌──────────────────────────┐
+ │  Carol opens     │     │  Agent-Reviewer      │     │  PaymentSplitter.sol     │
+ │  PR #234:        │────>│  verifies chatID     │────>│  on Kite AI Testnet      │
+ │  "fix: correct   │     │  logic against live   │     │                          │
+ │   chatID in      │     │  streaming endpoint   │     │  Alice   40% ── $0.040   │
+ │   streaming      │     │                       │     │  Bob     30% ── $0.030   │
+ │   response"      │     │  Verdict: Approved    │     │  Carol   20% ── $0.020   │
+ │                  │     │                       │     │  Agent   10% ── $0.010   │
+ └─────────────────┘     └───────────┬───────────┘     └──────────────────────────┘
+                                     │
+                              x402 payment
+                           (real tx on Kite)
+                                     │
+                                     ▼
+                          https://testnet.kitescan.ai/tx/0x334599b...
+```
+
+Every payment is a **real on-chain transaction** on Kite AI Testnet. Click any tx hash in the dashboard and it opens on [KiteScan](https://testnet.kitescan.ai).
+
+## The x402 Protocol Flow
+
+The server implements the [x402 protocol](https://www.x402.org/) — HTTP 402 Payment Required as a native payment layer for APIs:
+
+```
+Agent                          Server                         Kite AI Chain
+  │                              │                                │
+  │  POST /api/review            │                                │
+  │─────────────────────────────>│                                │
+  │                              │                                │
+  │  HTTP 402 Payment Required   │                                │
+  │  {                           │                                │
+  │    scheme: "gokite-aa",      │                                │
+  │    network: "kite-testnet",  │                                │
+  │    payTo: "0x4D0B...Caf",    │                                │
+  │    asset: "0x0fF5...e63"     │                                │
+  │  }                           │                                │
+  │<─────────────────────────────│                                │
+  │                              │                                │
+  │  sendTransaction(0.000001 KITE)                               │
+  │──────────────────────────────────────────────────────────────>│
+  │                              │                     tx: 0x33...│
+  │<──────────────────────────────────────────────────────────────│
+  │                              │                                │
+  │  POST /api/review            │                                │
+  │  X-Payment: { txHash: "0x33..." }                             │
+  │─────────────────────────────>│                                │
+  │                              │──── split to contributors ────>│
+  │  200 OK { verdict, summary } │                                │
+  │<─────────────────────────────│                                │
+```
+
+The agent discovers the API, gets a 402, pays on-chain, and retries with proof of payment. The server verifies, serves the response, and broadcasts the payment event to the real-time dashboard.
+
+## Live Demo
+
+The system runs three services locally and generates a live activity stream:
+
+- **Code pushes** appear as contributors submit PRs (simulated from real [0G docs repo](https://github.com/0gfoundation/0g-doc/pulls) PR titles)
+- **AI reviews** appear 3-6 seconds later with detailed review verdicts
+- **Payments** appear with real on-chain tx hashes, split amounts, and links to KiteScan
+- The **value flow animation** lights up to show money moving from agent → API → splitter → contributors
+
+All payment transactions are real and verifiable on [Kite AI Testnet Explorer](https://testnet.kitescan.ai).
 
 ## Architecture
 
 ```
-Frontend (Next.js 15)          Server (Express)              Kite AI Chain
-┌────────────────────┐    ┌────────────────────────┐    ┌──────────────────┐
-│ Contributor Sidebar│    │ x402-gated endpoints   │    │ PaymentSplitter  │
-│ Social Feed        │◄──►│ WebSocket broadcast    │───►│   .sol           │
-│ Revenue Dashboard  │ WS │ POST /api/analyze $0.05│    │ Splits to N      │
-└────────────────────┘    │ POST /api/summarize $03│    │ contributors     │
-                          │ POST /api/review  $0.10│    └──────────────────┘
-                          └─────────▲──────────────┘
-                                    │ x402 pay→consume
-                          ┌─────────┴──────────────┐
-                          │ Agent (autonomous loop) │
-                          │ Discovers → Pays → Uses │
-                          └────────────────────────┘
+contribos/
+├── contracts/                 # Solidity smart contract
+│   └── PaymentSplitter.sol    # On-chain payment splitting (deployed on Kite)
+├── server/                    # Express backend
+│   ├── index.ts               # x402 middleware, WebSocket, API endpoints
+│   └── seed-data.ts           # Activity chains, contributor config, PR templates
+├── agent/                     # Autonomous AI agent
+│   └── index.ts               # x402-aware consumer with ethers.js for real txs
+└── frontend/                  # Next.js 15 dashboard
+    ├── components/
+    │   ├── channel-feed.tsx    # Activity feed with chain grouping
+    │   ├── feed-event.tsx      # Rich cards (code push, review, payment)
+    │   ├── value-flow.tsx      # Animated value flow diagram
+    │   ├── contributor-sidebar.tsx  # Contributor stats + leaderboard
+    │   ├── revenue-dashboard.tsx    # Revenue charts + distributions
+    │   └── how-it-works.tsx    # Collapsible explainer
+    └── lib/
+        ├── websocket.ts       # Real-time state management
+        └── kite-chain.ts      # Kite testnet config + explorer URLs
 ```
 
-## Tech Stack
+## Deployed Contracts
 
-- **Smart Contract**: Solidity (Hardhat) — `PaymentSplitter.sol` on Kite AI Testnet
-- **Backend**: Express + x402 middleware + WebSocket
-- **Agent**: Node.js autonomous consumer with x402-aware fetch
-- **Frontend**: Next.js 15 + React 19 + Tailwind CSS + Recharts
-- **Chain**: Kite AI Testnet (Chain ID: 2368)
+| Contract | Address | Explorer |
+|---|---|---|
+| PaymentSplitter | `0x4D0BA345bE415f5a57CdbA2BE5a5b9aBB8f15Caf` | [View on KiteScan](https://testnet.kitescan.ai/address/0x4D0BA345bE415f5a57CdbA2BE5a5b9aBB8f15Caf) |
 
 ## Quick Start
 
-### Prerequisites
-- Node.js 18+
-- npm 9+
-
-### 1. Install dependencies
 ```bash
-cd contribos
+# Install
 npm install --workspaces
-```
 
-### 2. Configure environment
-```bash
+# Configure
 cp .env.example .env
-# Edit .env with your private keys
-# Get test KITE from https://faucet.gokite.ai
+# Add your private keys and get test KITE from https://faucet.gokite.ai
+
+# Deploy contract (optional — already deployed)
+npm run contracts:compile && npm run contracts:deploy
+
+# Run all three services (each in a separate terminal)
+npm run server     # http://localhost:4000
+npm run agent      # Autonomous x402 consumer
+npm run frontend   # http://localhost:3000
 ```
-
-### 3. Deploy contract (optional — uses pre-deployed address)
-```bash
-npm run contracts:compile
-npm run contracts:deploy
-```
-
-### 4. Start the server
-```bash
-npm run server
-# Server runs on http://localhost:4000
-```
-
-### 5. Start the agent (in a separate terminal)
-```bash
-npm run agent
-# Agent starts consuming APIs and paying via x402
-```
-
-### 6. Start the frontend (in a separate terminal)
-```bash
-npm run frontend
-# Dashboard at http://localhost:3000
-```
-
-## x402 Payment Flow
-
-1. Agent (or any consumer) calls `POST /api/analyze`
-2. Server returns **HTTP 402** with payment requirements (price, network, recipient)
-3. Agent signs a payment payload and retries with `X-Payment` header
-4. Server verifies payment, serves the resource
-5. Payment is split to contributors via the `PaymentSplitter` contract
-6. Dashboard updates in real-time via WebSocket
-
-## Kite AI Chain Config
-
-| Parameter | Value |
-|---|---|
-| Chain ID | `2368` |
-| RPC | `https://rpc-testnet.gokite.ai/` |
-| Explorer | `https://testnet.kitescan.ai/` |
-| Faucet | `https://faucet.gokite.ai` |
-| Test USDT | `0x0fF5393387ad2f9f691FD6Fd28e07E3969e27e63` |
 
 ## API Endpoints
 
@@ -109,28 +132,46 @@ npm run frontend
 | `POST /api/analyze` | $0.05 | Code analysis (x402 gated) |
 | `POST /api/summarize` | $0.03 | Text summarization (x402 gated) |
 | `POST /api/review` | $0.10 | PR code review (x402 gated) |
-| `GET /api/feed` | Free | Channel event feed |
-| `GET /api/stats` | Free | Revenue stats + contributor earnings |
-| `POST /api/message` | Free | Post a chat message |
+| `POST /api/event` | Free | Post activity events (code push, review) |
+| `GET /api/feed` | Free | Full event feed |
+| `GET /api/stats` | Free | Revenue + contributor earnings |
+| `WebSocket /ws` | Free | Real-time event stream |
 
-## Contributor Splits
+## Kite AI Testnet
 
-| Contributor | Role | Weight |
-|---|---|---|
-| Alice | Core maintainer | 40% |
-| Bob | Backend lead | 30% |
-| Carol | Security reviewer | 20% |
-| Agent-Reviewer | AI code reviewer | 10% |
+| Parameter | Value |
+|---|---|
+| Chain ID | `2368` |
+| RPC | `https://rpc-testnet.gokite.ai/` |
+| Explorer | [testnet.kitescan.ai](https://testnet.kitescan.ai/) |
+| Faucet | [faucet.gokite.ai](https://faucet.gokite.ai) |
+| x402 Scheme | `gokite-aa` |
+| Facilitator | [facilitator.pieverse.io](https://facilitator.pieverse.io) |
+
+## Why This Matters
+
+Open source has a sustainability problem. Millions of projects are consumed daily by AI agents, companies, and developers — but contributors see nothing in return. Meanwhile, AI agents are becoming the primary consumers of APIs, and they can pay.
+
+ContribOS connects these two realities:
+
+1. **For maintainers**: Every API call to your project generates revenue, split automatically to contributors by weight. No grant applications, no sponsorship tiers — just direct payment for value delivered.
+
+2. **For AI agents**: APIs are discoverable, self-describing (via 402 responses), and payable. An agent can find an API, understand what it costs, pay, and consume — all autonomously.
+
+3. **For open source communities**: Contribution quality improves when there's transparent, on-chain reward. The AI reviewer catches issues that humans miss or don't have time to review. The payment splitter ensures everyone gets their share.
+
+This isn't theoretical — it's running on Kite AI Testnet with real transactions right now.
+
+## Tech Stack
+
+- **Smart Contract**: Solidity 0.8.24 / Hardhat — PaymentSplitter with native + ERC-20 splitting
+- **Backend**: Express, WebSocket, custom x402 middleware
+- **Agent**: Node.js + ethers.js — autonomous x402 consumer with real on-chain payments
+- **Frontend**: Next.js 15, React 19, Tailwind CSS v4, Recharts
+- **Chain**: Kite AI Testnet (EVM, Chain ID 2368)
 
 ## Bounty Tracks
 
-- **Kite AI** — "Agent-Native Payments & Identity on Kite AI (x402-Powered)"
-- **ETHDenver Prosperia** — "Cypherpunks, Solarpunks & Communities"
-
-## License
-
-MIT
-
----
-
-Built for ETHDenver 2026
+- **Kite AI** ($10K) — Agent-native x402 payments on Kite AI chain
+- **Prosperia** ($2K) — Open source sustainability as a public good
+- **0G Dev Tooling** ($4K) — Evaluating and rewarding contributions to open source repos (demonstrated against [0G docs](https://github.com/0gfoundation/0g-doc/pulls))
