@@ -11,3 +11,4 @@ typechain-types/
 coverage/
 *.log
 .DS_Store
+walkthrough.md
